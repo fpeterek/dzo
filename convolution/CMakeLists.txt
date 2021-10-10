@@ -16,4 +16,15 @@ link_libraries(
     pthread
 )
 
-add_executable(convolution src/main.cpp include/file_not_found.hpp src/file_not_found.cpp include/mask.hpp src/mask.cpp)
+add_executable(
+    convolution
+    src/main.cpp
+    include/file_not_found.hpp
+    src/file_not_found.cpp
+    include/mask.hpp
+    src/mask.cpp
+    include/fs.hpp
+    src/fs.cpp
+    include/convolution_operator.hpp
+    src/convolution_operator.cpp
+)

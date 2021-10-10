@@ -1,42 +1,18 @@
 #include <iostream>
 #include <filesystem>
+#include <thread>
 
 #include <SFML/Graphics.hpp>
 
 #include "file_not_found.hpp"
 #include "mask.hpp"
+#include "fs.hpp"
+#include "convolution_operator.hpp"
 
-
-std::vector<std::string> ls(const std::string & path) {
-    std::vector<std::string> contents;
-
-    for (const auto & entry : std::filesystem::directory_iterator(path)) {
-        contents.emplace_back(entry.path());
-    }
-
-    return contents;
-}
-
-void mkdir(const std::string & path) {
-    if (not std::filesystem::exists(path)) {
-        std::filesystem::create_directory(path);
-    }
-}
-
-void rmrf(const std::string & path) {
-    if (std::filesystem::exists(path)) {
-        std::filesystem::remove_all(path);
-    }
-}
-
-void recreateDir(const std::string & path) {
-    rmrf(path);
-    mkdir(path);
-}
 
 std::vector<Mask> loadMasks(const std::string & path) {
     std::vector<Mask> masks;
-    const auto files = ls(path);
+    const auto files = fs::ls(path);
 
     for (const auto & filename : files) {
         if (filename.rfind(".mask") == filename.size() - 5) {
@@ -55,25 +31,33 @@ sf::Image loadImage(const std::string & infile) {
     return img;
 }
 
-sf::Image applyMask(const sf::Image & orig, const Mask & mask) {
+std::string formOutPath(const std::string & infile) {
+    const std::string suffixFree = infile.substr(0, infile.find_last_of('.'));
+    const size_t lastSlash = suffixFree.find_last_of('/');
+    const std::string prefixFree = (lastSlash != std::string::npos) ? suffixFree.substr(lastSlash+1) : suffixFree;
 
-    sf::Image dest;
-    dest.create(orig.getSize().x - (mask.width()-1), orig.getSize().y - (mask.height()-1));
-
-    // TODO: Finish this function and I'm done
-    return dest;
+    return "out/" + prefixFree + "/";
 }
 
 void process(const std::string & infile, const std::vector<Mask> & masks) {
     auto img = loadImage(infile);
-    const auto outPath = "out/" + infile.substr(0, infile.find_last_of('.')) + "/";
+    const auto outPath = formOutPath(infile);
     std::cout << outPath << std::endl;
-    recreateDir(outPath);
+    fs::recreateDir(outPath);
+
+    std::vector<std::thread> threads;
 
     for (const Mask & mask : masks) {
-        const auto newImage = applyMask(img, mask);
-        newImage.saveToFile(outPath + mask.name() + ".png");
+        std::thread t {
+            [&]() -> void {
+                const auto newImage = img * mask;
+                newImage.saveToFile(outPath + mask.name() + ".png");
+            }
+        };
+        threads.emplace_back(std::move(t));
     }
+
+    std::for_each(threads.begin(), threads.end(), [](std::thread & t) { t.join(); });
 }
 
 void log(const FileNotFoundException & e) {
@@ -87,7 +71,7 @@ void log(const std::exception & e) {
 
 
 int main(int argc, const char * argv[]) {
-    mkdir("out/");
+    fs::mkdir("out/");
     const auto masks = loadMasks("masks/");
 
     for (int i = 1; i < argc; ++i) {
