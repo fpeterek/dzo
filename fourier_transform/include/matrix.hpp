@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <vector>
 #include <tuple>
+#include <cmath>
 
 
 template<typename T>
@@ -30,6 +31,12 @@ public:
     size_t width() const;
     size_t height() const;
 
+    std::vector<T> row(size_t y) const;
+    std::vector<T> col(size_t x) const;
+
+    void setRow(size_t y, const std::vector<T> & row);
+    void setCol(size_t x, const std::vector<T> & col);
+
     const T & at(size_t y, size_t x) const;
     T & at(size_t y, size_t x);
 
@@ -40,6 +47,20 @@ public:
 };
 
 template<typename T>
+std::ostream & operator<<(std::ostream & os, const Matrix<T> & mat) {
+    for (size_t y = 0; y < mat.height(); ++y) {
+        for (size_t x = 0; x < mat.width(); ++x) {
+            os << mat.at(y, x);
+        }
+        if (y < mat.height()-1) {
+            std::endl(os);
+        }
+    }
+
+    return os;
+}
+
+template<typename T>
 Matrix<double> circleMask(const Matrix<T> & matrix, const double sizeRatio) {
     Matrix<double> mask { matrix.width(), matrix.height() };
 
@@ -48,15 +69,53 @@ Matrix<double> circleMask(const Matrix<T> & matrix, const double sizeRatio) {
     const double rad = std::max(cx, cy) * sizeRatio;
 
     for (size_t x = 0; x < matrix.width(); ++x) {
+        const auto dx = cx - x;
+        const auto dx2 = dx*dx;
         for (size_t y = 0; y < matrix.height(); ++y) {
-            const auto dx = cx - x;
             const auto dy = cy - y;
-            const auto d = std::sqrt(dx*dy + dy*dy);
+            const auto d = std::sqrt(dx2 + dy*dy);
             mask.at(y, x) = d > rad;
         }
     }
 
     return mask;
+}
+
+template<typename T>
+std::vector<T> Matrix<T>::row(const size_t y) const {
+    return _matrix[y];
+}
+
+template<typename T>
+std::vector<T> Matrix<T>::col(const size_t x) const {
+    std::vector<T> out;
+    out.reserve(height());
+
+    for (size_t y = 0; y < height(); ++y) {
+        out.template emplace_back(at(y, x));
+    }
+
+    return out;
+}
+
+
+template<typename T>
+void Matrix<T>::setRow(size_t y, const std::vector<T> & row) {
+    if (row.size() != width()) {
+        throw std::runtime_error("Invalid size");
+    }
+    _matrix[y] = row;
+}
+
+template<typename T>
+void Matrix<T>::setCol(size_t x, const std::vector<T> & col) {
+    if (col.size() != height()) {
+        throw std::runtime_error("Invalid size");
+    }
+
+    for (size_t y = 0; y < height(); ++y) {
+        at(y, x) = col[y];
+    }
 }
 
 template<typename T>
