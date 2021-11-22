@@ -22,4 +22,12 @@ add_executable(
     include/matrix.hpp
     include/fs.hpp
     src/fs.cpp
-    include/fft.hpp src/fft.cpp include/util.hpp include/sft.hpp src/sft.cpp src/util.cpp include/img_transform.hpp src/img_transform.cpp)
+    include/fft.hpp
+    src/fft.cpp
+    include/util.hpp
+    include/sft.hpp
+    src/sft.cpp
+    src/util.cpp
+    include/img_transform.hpp
+    src/img_transform.cpp
+)
