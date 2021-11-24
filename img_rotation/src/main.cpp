@@ -70,8 +70,13 @@ std::pair<sf::IntRect, sf::Vector2f> calcRotatedImgDimensions(const sf::Vector2u
     };
 }
 
+bool inImg(const sf::Image & img, const sf::Vector2i pixelPos) {
+    return 0 <= pixelPos.x and pixelPos.x < img.getSize().x and
+           0 <= pixelPos.y and pixelPos.y < img.getSize().y;
+}
+
 sf::Color getPixel(const sf::Image & img, const sf::Vector2i pixelPos) {
-    if (0 <= pixelPos.x and pixelPos.x < img.getSize().x and 0 <= pixelPos.y and pixelPos.y < img.getSize().y) {
+    if (inImg(img, pixelPos)) {
         return img.getPixel(pixelPos.x, pixelPos.y);
     }
     return sf::Color::Transparent;
@@ -80,11 +85,6 @@ sf::Color getPixel(const sf::Image & img, const sf::Vector2i pixelPos) {
 sf::Color nearestNeighbour(const sf::Image & img, const sf::Vector2f pixelPos) {
     const sf::Vector2i rounded { (int)std::round(pixelPos.x), (int)std::round(pixelPos.y) };
     return getPixel(img, rounded);
-}
-
-bool inImg(const sf::Image & img, const sf::Vector2i pixelPos) {
-    return 0 <= pixelPos.x and pixelPos.x < img.getSize().x and
-           0 <= pixelPos.y and pixelPos.y < img.getSize().y;
 }
 
 sf::Color operator*(const sf::Color color, const double weight) {
@@ -96,7 +96,27 @@ sf::Color operator*(const sf::Color color, const double weight) {
     };
 }
 
-sf::Color bilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
+sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
+    const sf::Vector2i left { (int)pixelPos.x, (int)pixelPos.y };
+    const sf::Vector2i right { (int)std::ceil(pixelPos.x), (int)pixelPos.y };
+
+    const double weight1 = (right.x - pixelPos.x) / (right.x - left.x);
+    const double weight2 = (pixelPos.x - left.x) / (right.x - left.x);
+
+    return (getPixel(img, left) * weight1) + (getPixel(img, right) * weight2);
+}
+
+sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
+    const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y };
+    const sf::Vector2i bottom { (int)pixelPos.x, (int)std::ceil(pixelPos.y) };
+
+    const double weight1 = (bottom.y - pixelPos.y) / (bottom.y - top.y);
+    const double weight2 = (pixelPos.y - top.y) / (bottom.y - top.y);
+
+    return (getPixel(img, top) * weight1) + (getPixel(img, bottom) * weight2);
+}
+
+sf::Color xyBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
 
     const sf::Vector2i lt { (int)pixelPos.x, (int)pixelPos.y };
     const sf::Vector2i lb { (int)pixelPos.x, (int)std::ceil(pixelPos.y) };
@@ -106,13 +126,28 @@ sf::Color bilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelP
     const double weight1 = (rt.x - pixelPos.x) / (rt.x - lt.x);
     const double weight2 = (pixelPos.x - lt.x) / (rt.x - lt.x);
 
-    const sf::Color column1 = (getPixel(img, lt) * weight1) + (getPixel(img, lb) * weight2);
-    const sf::Color column2 = (getPixel(img, rt) * weight1) + (getPixel(img, rb) * weight2);
+    const sf::Color column1 = (getPixel(img, lt) * weight1) + (getPixel(img, rt) * weight2);
+    const sf::Color column2 = (getPixel(img, lb) * weight1) + (getPixel(img, rb) * weight2);
 
     const double yWeight1 = (lb.y - pixelPos.y) / (lb.y - lt.y);
     const double yWeight2 = (pixelPos.y - lt.y) / (lb.y - lt.y);
 
     return (column1 * yWeight1) + (column2 * yWeight2);
+}
+
+sf::Color bilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
+
+    if (pixelPos.x == std::round(pixelPos.x) and pixelPos.y == std::round(pixelPos.y)) {
+        return getPixel(img, { (int)pixelPos.x, (int)pixelPos.y });
+    }
+    if (pixelPos.x == std::round(pixelPos.x)) {
+        return yAxisBilinearInterpolation(img, pixelPos);
+    }
+    if (pixelPos.y == std::round(pixelPos.y)) {
+        return xAxisBilinearInterpolation(img, pixelPos);
+    }
+
+    return xyBilinearInterpolation(img, pixelPos);
 }
 
 typedef std::function<sf::Color(const sf::Image&, sf::Vector2f)> PixelFun;
@@ -143,8 +178,16 @@ int main(int argc, const char * argv[]) {
     lena.loadFromFile("resources/lena64.png");
     const auto pi2 = rotate(lena, M_PI * 0.5);
     pi2.saveToFile("pi2.png");
-    const auto pi4 = rotate(lena, M_PI * 0.25, bilinearInterpolation);
+    const auto pi4 = rotate(lena, M_PI * 0.25);
     pi4.saveToFile("pi4.png");
     const auto pi3 = rotate(lena, M_PI * 0.33);
     pi3.saveToFile("pi3.png");
+
+
+    const auto bi_pi2 = rotate(lena, M_PI * 0.5, bilinearInterpolation);
+    bi_pi2.saveToFile("bi_pi2.png");
+    const auto bi_pi4 = rotate(lena, M_PI * 0.25, bilinearInterpolation);
+    bi_pi4.saveToFile("bi_pi4.png");
+    const auto bi_pi3 = rotate(lena, M_PI * 0.33, bilinearInterpolation);
+    bi_pi3.saveToFile("bi_pi3.png");
 }
