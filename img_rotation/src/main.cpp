@@ -98,7 +98,7 @@ sf::Color operator*(const sf::Color color, const double weight) {
 
 sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
     const sf::Vector2i left { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i right { (int)std::ceil(pixelPos.x), (int)pixelPos.y };
+    const sf::Vector2i right { (int)pixelPos.x + 1, (int)pixelPos.y };
 
     const double weight1 = (right.x - pixelPos.x) / (right.x - left.x);
     const double weight2 = (pixelPos.x - left.x) / (right.x - left.x);
@@ -108,7 +108,7 @@ sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
 
 sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
     const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i bottom { (int)pixelPos.x, (int)std::ceil(pixelPos.y) };
+    const sf::Vector2i bottom { (int)pixelPos.x, (int)pixelPos.y + 1 };
 
     const double weight1 = (bottom.y - pixelPos.y) / (bottom.y - top.y);
     const double weight2 = (pixelPos.y - top.y) / (bottom.y - top.y);
@@ -119,9 +119,9 @@ sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
 sf::Color xyBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
 
     const sf::Vector2i lt { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i lb { (int)pixelPos.x, (int)std::ceil(pixelPos.y) };
-    const sf::Vector2i rt { (int)std::ceil(pixelPos.x), (int)pixelPos.y };
-    const sf::Vector2i rb { (int)std::ceil(pixelPos.x), (int)std::ceil(pixelPos.y) };
+    const sf::Vector2i lb { (int)pixelPos.x, (int)pixelPos.y + 1 };
+    const sf::Vector2i rt { (int)pixelPos.x + 1, (int)pixelPos.y };
+    const sf::Vector2i rb { (int)pixelPos.x + 1, (int)pixelPos.y + 1 };
 
     const double weight1 = (rt.x - pixelPos.x) / (rt.x - lt.x);
     const double weight2 = (pixelPos.x - lt.x) / (rt.x - lt.x);
@@ -190,4 +190,6 @@ int main(int argc, const char * argv[]) {
     bi_pi4.saveToFile("bi_pi4.png");
     const auto bi_pi3 = rotate(lena, M_PI * 0.33, bilinearInterpolation);
     bi_pi3.saveToFile("bi_pi3.png");
+    const auto bi_pi13 = rotate(lena, M_PI * 1.33, bilinearInterpolation);
+    bi_pi13.saveToFile("bi_pi13.png");
 }
