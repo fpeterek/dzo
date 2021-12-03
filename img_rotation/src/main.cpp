@@ -131,12 +131,16 @@ sf::Color nearestNeighbour(const sf::Image & img, const sf::Vector2f pixelPos) {
     return getPixel(img, rounded);
 }
 
+uint8_t clampColor(const int orig) {
+    return (uint8_t)std::min(255, std::max(0, orig));
+}
+
 sf::Color operator*(const sf::Color color, const double weight) {
     return {
-        (uint8_t)std::round(color.r * weight),
-        (uint8_t)std::round(color.g * weight),
-        (uint8_t)std::round(color.b * weight),
-        (uint8_t)std::round(color.a * weight)
+        clampColor(color.r * weight),
+        clampColor(color.g * weight),
+        clampColor(color.b * weight),
+        clampColor(color.a * weight)
     };
 }
 
@@ -144,8 +148,8 @@ sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
     const sf::Vector2i left { (int)pixelPos.x, (int)pixelPos.y };
     const sf::Vector2i right { (int)pixelPos.x + 1, (int)pixelPos.y };
 
-    const double weight1 = (right.x - pixelPos.x) / (right.x - left.x);
-    const double weight2 = (pixelPos.x - left.x) / (right.x - left.x);
+    const double weight1 = (right.x - pixelPos.x);
+    const double weight2 = (pixelPos.x - left.x);
 
     return (getPixel(img, left) * weight1) + (getPixel(img, right) * weight2);
 }
@@ -154,8 +158,8 @@ sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
     const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y };
     const sf::Vector2i bottom { (int)pixelPos.x, (int)pixelPos.y + 1 };
 
-    const double weight1 = (bottom.y - pixelPos.y) / (bottom.y - top.y);
-    const double weight2 = (pixelPos.y - top.y) / (bottom.y - top.y);
+    const double weight1 = (bottom.y - pixelPos.y);
+    const double weight2 = (pixelPos.y - top.y);
 
     return (getPixel(img, top) * weight1) + (getPixel(img, bottom) * weight2);
 }
@@ -167,14 +171,14 @@ sf::Color xyBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixe
     const sf::Vector2i rt { (int)pixelPos.x + 1, (int)pixelPos.y };
     const sf::Vector2i rb { (int)pixelPos.x + 1, (int)pixelPos.y + 1 };
 
-    const double weight1 = (rt.x - pixelPos.x) / (rt.x - lt.x);
-    const double weight2 = (pixelPos.x - lt.x) / (rt.x - lt.x);
+    const double weight1 = (rt.x - pixelPos.x);
+    const double weight2 = (pixelPos.x - lt.x);
 
     const sf::Color column1 = (getPixel(img, lt) * weight1) + (getPixel(img, rt) * weight2);
     const sf::Color column2 = (getPixel(img, lb) * weight1) + (getPixel(img, rb) * weight2);
 
-    const double yWeight1 = (lb.y - pixelPos.y) / (lb.y - lt.y);
-    const double yWeight2 = (pixelPos.y - lt.y) / (lb.y - lt.y);
+    const double yWeight1 = (lb.y - pixelPos.y);
+    const double yWeight2 = (pixelPos.y - lt.y);
 
     return (column1 * yWeight1) + (column2 * yWeight2);
 }
