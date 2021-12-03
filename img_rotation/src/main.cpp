@@ -44,28 +44,72 @@ sf::Vector2f rotate(const sf::Vector2f point, const sf::Vector2f pivot, const fl
     return { dist * std::cos(angle), -1 * dist * std::sin(angle) };
 }
 
-std::pair<sf::IntRect, sf::Vector2f> calcRotatedImgDimensions(const sf::Vector2u size, const sf::Vector2f pivot, const float angle) {
+struct RotatedImgBounds {
+    const float minX;
+    const float minY;
+    const float maxX;
+    const float maxY;
 
-    const auto lt = rotate({ 0.0, 0.0 }, pivot, angle);
-    const auto lb = rotate({ 0.0, (float)size.y }, pivot, angle);
-    const auto rt = rotate({ (float)size.x, 0.0 }, pivot, angle);
-    const auto rb = rotate({ (float)size.x, (float)size.y }, pivot, angle);
+    float width() const;
+    float height() const;
+};
+
+float RotatedImgBounds::width() const {
+    return std::abs(maxX - minX);
+}
+
+float RotatedImgBounds::height() const {
+    return std::abs(maxY - minY);
+}
+
+RotatedImgBounds rotateRect(const std::array<sf::Vector2f, 4> & vertices, const sf::Vector2f pivot, const float angle) {
+    const auto lt = rotate(vertices[0], pivot, angle);
+    const auto lb = rotate(vertices[1], pivot, angle);
+    const auto rt = rotate(vertices[2], pivot, angle);
+    const auto rb = rotate(vertices[3], pivot, angle);
 
     const auto maxX = std::max(std::max(lt.x, lb.x), std::max(rt.x, rb.x));
     const auto maxY = std::max(std::max(lt.y, lb.y), std::max(rt.y, rb.y));
     const auto minX = std::min(std::min(lt.x, lb.x), std::min(rt.x, rb.x));
     const auto minY = std::min(std::min(lt.y, lb.y), std::min(rt.y, rb.y));
 
+    return { minX, minY, maxX, maxY };
+}
+
+std::pair<sf::IntRect, sf::Vector2f> calcRotatedImgDimensions(const sf::Vector2u size, const sf::Vector2f pivot, const float angle) {
+
+    // We do not subtract one because we want to work with img dimensions, not pixel positions
+    // and subtracting one would make the image one pixel too small
+    const auto imgDim = rotateRect(std::array<sf::Vector2f, 4> {
+            sf::Vector2f(0.f, 0.f), sf::Vector2f(0.f, (float)(size.y) ),
+            sf::Vector2f((float)(size.x), 0.f), sf::Vector2f((float)(size.x), (float)(size.y))
+        },
+        pivot, angle
+    );
+
+    // However, we are working with pixel positions, not img dimensions in this case,
+    // As what we are trying to accomplish is computing the position of the pivot
+    // in the rotated img
+    // The first point in the right bottom corner has coordinates [width-1, height-1],
+    // we want to take this into account when calculating pivot position,
+    // otherwise, the pivot would be incorrectly offset
+    const auto pivotDim = rotateRect(std::array<sf::Vector2f, 4> {
+           sf::Vector2f(0.f, 0.f), sf::Vector2f(0.f, (float)(size.y-1) ),
+           sf::Vector2f((float)(size.x-1), 0.f), sf::Vector2f((float)(size.x-1), (float)(size.y-1))
+       },
+       pivot, angle
+    );
+
     return {
         {
-            (int) minX,
-            (int) minY,
-            (int) std::round(std::abs(maxX - minX)),
-            (int) std::round(std::abs(maxY - minY))
+            0,
+            0,
+            (int)std::round(imgDim.width()),
+            (int)std::round(imgDim.height())
         },
         {
-            std::abs(minX),
-            std::abs(minY)
+            std::abs(pivotDim.minX),
+            std::abs(pivotDim.minY)
         }
     };
 }
@@ -166,6 +210,9 @@ sf::Image rotate(const sf::Image & img, const float angle, const PixelFun & fn =
     for (int y = 0; y < imgDim.y; ++y) {
         for (int x = 0; x < imgDim.x; ++x) {
             const auto origPx = rotate({ (float)x, (float)y }, pivot, -angle);
+            if (origPx.x < 1 or origPx.y < 1) {
+                std::cout << "(" << pivot.x << ", " << pivot.y << ") " << origPx.x << ", " << origPx.y << std::endl;
+            }
             target.setPixel(x, y, fn(img, origPx));
         }
     }
