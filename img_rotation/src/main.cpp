@@ -148,8 +148,8 @@ sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
     const sf::Vector2i left { (int)pixelPos.x, (int)pixelPos.y };
     const sf::Vector2i right { (int)pixelPos.x + 1, (int)pixelPos.y };
 
-    const double weight1 = (right.x - pixelPos.x);
-    const double weight2 = (pixelPos.x - left.x);
+    const double weight1 = (pixelPos.x - left.x);
+    const double weight2 = (right.x - pixelPos.x);
 
     return (getPixel(img, left) * weight1) + (getPixel(img, right) * weight2);
 }
@@ -158,8 +158,8 @@ sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
     const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y };
     const sf::Vector2i bottom { (int)pixelPos.x, (int)pixelPos.y + 1 };
 
-    const double weight1 = (bottom.y - pixelPos.y);
-    const double weight2 = (pixelPos.y - top.y);
+    const double weight1 = (pixelPos.y - top.y);
+    const double weight2 = (bottom.y - pixelPos.y);
 
     return (getPixel(img, top) * weight1) + (getPixel(img, bottom) * weight2);
 }
@@ -214,9 +214,6 @@ sf::Image rotate(const sf::Image & img, const float angle, const PixelFun & fn =
     for (int y = 0; y < imgDim.y; ++y) {
         for (int x = 0; x < imgDim.x; ++x) {
             const auto origPx = rotate({ (float)x, (float)y }, pivot, -angle);
-            if (origPx.x < 1 or origPx.y < 1) {
-                std::cout << "(" << pivot.x << ", " << pivot.y << ") " << origPx.x << ", " << origPx.y << std::endl;
-            }
             target.setPixel(x, y, fn(img, origPx));
         }
     }
