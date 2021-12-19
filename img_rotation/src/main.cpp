@@ -4,6 +4,10 @@
 
 #include <SFML/Graphics.hpp>
 
+template<typename T>
+std::ostream & operator<<(std::ostream & os, const sf::Vector2<T> & vec) {
+    return os << "{x: " << vec.x << ", y: " << vec.y << "}";
+}
 
 float calcDist(const sf::Vector2f p1, const sf::Vector2f p2) {
     const auto dx = p1.x - p2.x;
@@ -137,16 +141,19 @@ uint8_t clampColor(const int orig) {
 
 sf::Color operator*(const sf::Color color, const double weight) {
     return {
-        clampColor(color.r * weight),
-        clampColor(color.g * weight),
-        clampColor(color.b * weight),
-        clampColor(color.a * weight)
+        clampColor(std::round(int(color.r) * weight)),
+        clampColor(std::round(int(color.g) * weight)),
+        clampColor(std::round(int(color.b) * weight)),
+        clampColor(std::round(int(color.a) * weight))
     };
 }
 
 sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
-    const sf::Vector2i left { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i right { (int)pixelPos.x + 1, (int)pixelPos.y };
+
+    const bool xAboveZero = pixelPos.x >= 0;
+
+    const sf::Vector2i left { (int)pixelPos.x - 1*(not xAboveZero), (int)pixelPos.y };
+    const sf::Vector2i right { (int)pixelPos.x + 1*xAboveZero, (int)pixelPos.y };
 
     const double weight1 = (right.x - pixelPos.x);
     const double weight2 = (pixelPos.x - left.x);
@@ -155,8 +162,11 @@ sf::Color xAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
 }
 
 sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
-    const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i bottom { (int)pixelPos.x, (int)pixelPos.y + 1 };
+
+    const bool yAboveZero = pixelPos.y >= 0;
+
+    const sf::Vector2i top { (int)pixelPos.x, (int)pixelPos.y - 1*(not yAboveZero) };
+    const sf::Vector2i bottom { (int)pixelPos.x, (int)pixelPos.y + 1*yAboveZero };
 
     const double weight1 = (bottom.y - pixelPos.y);
     const double weight2 = (pixelPos.y - top.y);
@@ -166,10 +176,19 @@ sf::Color yAxisBilinearInterpolation(const sf::Image & img, const sf::Vector2f p
 
 sf::Color xyBilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
 
-    const sf::Vector2i lt { (int)pixelPos.x, (int)pixelPos.y };
-    const sf::Vector2i lb { (int)pixelPos.x, (int)pixelPos.y + 1 };
-    const sf::Vector2i rt { (int)pixelPos.x + 1, (int)pixelPos.y };
-    const sf::Vector2i rb { (int)pixelPos.x + 1, (int)pixelPos.y + 1 };
+    // Numbers are rounded to zero, not down, which, in combination with just the addition
+    // of the value of one breaks weight calculation for negative numbers
+    // Thus, we must check whether we're dealing with positive or negative numbers
+    // and adjust accordingly
+    const bool xAboveZero = pixelPos.x >= 0;
+    const bool yAboveZero = pixelPos.y >= 0;
+
+    // If we're working with positive numbers, we increment the bottom and right coordinates by one
+    // If we're dealing with negative numbers, we decrement the upper and left coordinates by one
+    const sf::Vector2i lt { (int)pixelPos.x - 1*(not xAboveZero), (int)pixelPos.y - 1*(not yAboveZero) };
+    const sf::Vector2i lb { (int)pixelPos.x - 1*(not xAboveZero), (int)pixelPos.y + 1*yAboveZero };
+    const sf::Vector2i rt { (int)pixelPos.x + 1*xAboveZero, (int)pixelPos.y - 1*(not yAboveZero)};
+    const sf::Vector2i rb { (int)pixelPos.x + 1*xAboveZero, (int)pixelPos.y + 1*yAboveZero };
 
     const double weight1 = (rt.x - pixelPos.x);
     const double weight2 = (pixelPos.x - lt.x);
