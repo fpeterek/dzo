@@ -17,4 +17,4 @@ link_libraries(
 add_executable(
     img_rotation
     src/main.cpp
-    include/util.hpp src/util.cpp include/image_rotation.hpp src/image_rotation.cpp include/pixel_approximation.hpp src/pixel_approximation.cpp)
+    include/util.hpp src/util.cpp include/image_rotation.hpp src/image_rotation.cpp include/pixel_approximation.hpp src/pixel_approximation.cpp include/image_scaling.hpp src/image_scaling.cpp)

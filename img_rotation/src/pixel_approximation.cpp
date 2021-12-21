@@ -4,6 +4,8 @@
 
 #include "pixel_approximation.hpp"
 
+#include <iostream>
+
 
 sf::Color nearestNeighbour(const sf::Image & img, const sf::Vector2f pixelPos) {
     const sf::Vector2i rounded { (int)std::round(pixelPos.x), (int)std::round(pixelPos.y) };

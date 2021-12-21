@@ -30,6 +30,6 @@ RotatedImgBounds rotateRect(const std::array<sf::Vector2f, 4> & vertices, sf::Ve
 
 std::pair<sf::IntRect, sf::Vector2f> calcRotatedImgDimensions(sf::Vector2u size, sf::Vector2f pivot, float angle);
 
-sf::Image rotate(const sf::Image & img, const float angle, const PixelFun & fn = nearestNeighbour);
+sf::Image rotate(const sf::Image & img, float angle, const PixelFun & fn = nearestNeighbour);
 
 #endif //IMG_ROTATION_IMAGE_ROTATION_HPP
