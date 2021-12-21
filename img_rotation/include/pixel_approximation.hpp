@@ -18,6 +18,7 @@ typedef std::function<sf::Color(const sf::Image&, sf::Vector2f)> PixelFun;
 
 sf::Color nearestNeighbour(const sf::Image & img, sf::Vector2f pixelPos);
 sf::Color bilinearInterpolation(const sf::Image & img, sf::Vector2f pixelPos);
-sf::Color bicubicInterpolation(const sf::Image & img, sf::Vector2f pixelPos);
+// Commented out until I actually create the function
+// sf::Color bicubicInterpolation(const sf::Image & img, sf::Vector2f pixelPos);
 
 #endif //IMG_ROTATION_PIXEL_APPROXIMATION_HPP

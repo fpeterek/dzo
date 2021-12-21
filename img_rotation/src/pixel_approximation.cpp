@@ -40,6 +40,8 @@ sf::Color bilinearInterpolation(const sf::Image & img, const sf::Vector2f pixelP
     return (upperRow * yWeight1) + (lowerRow * yWeight2);
 }
 
+// TODO: Program bicubic interpolation as the following function is nothing but
+//       a copy of the previous function
 sf::Color bicubicInterpolation(const sf::Image & img, const sf::Vector2f pixelPos) {
 
     // Numbers are rounded to zero, not down, which, in combination with just the addition
