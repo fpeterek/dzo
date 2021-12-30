@@ -28,4 +28,6 @@ std::uint8_t clampColor(int orig);
 sf::Color getPixel(const sf::Image & img, sf::Vector2i pixelPos);
 sf::Color operator*(sf::Color color, double weight);
 
+sf::Image loadImage(const std::string & filename);
+
 #endif //IMG_ROTATION_UTIL_HPP

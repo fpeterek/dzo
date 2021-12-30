@@ -2,6 +2,15 @@
 
 Solutions to Digital Image Processing assignments.
 
+This repository contains C++ implementations of
+
+* [Convolution](convolution/)
+* [Fourier Transform](fourier_transform/)
+* [Image Rotation, Image Scaling, Distortion Correction](img_rotation/)
+
+Each folder contains a description of the code as well as sample
+inputs and outputs.
+
 ## Build
 
 ```sh
@@ -32,5 +41,9 @@ sudo apt install libsfml-dev
 
 ```sh
 ./fourier in/*
+```
+
+```sh
+./img_rotation
 ```
 

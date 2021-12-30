@@ -9,8 +9,8 @@
 
 namespace fs {
 
-    std::vector <std::string> ls(const std::string & path) {
-        std::vector <std::string> contents;
+    std::vector<std::string> ls(const std::string & path) {
+        std::vector<std::string> contents;
 
         for (const auto & entry: std::filesystem::directory_iterator(path)) {
             contents.emplace_back(entry.path());

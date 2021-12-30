@@ -1,5 +1,4 @@
 #include <iostream>
-#include <filesystem>
 #include <thread>
 
 #include <SFML/Graphics.hpp>
@@ -79,9 +78,10 @@ int main(int argc, const char * argv[]) {
             process(argv[i], masks);
         } catch (const FileNotFoundException & e) {
             log(e);
+            return -1;
         } catch (const std::exception & e) {
             log(e);
-            return -1;
+            return -2;
         }
     }
 }

@@ -60,3 +60,10 @@ sf::Color operator*(const sf::Color color, const double weight) {
         clampColor(std::round(int(color.a) * weight))
     };
 }
+
+sf::Image loadImage(const std::string & filename) {
+    sf::Image img;
+    img.loadFromFile(filename);
+    return img;
+}
+

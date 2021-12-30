@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cmath>
 
 #include <SFML/Graphics.hpp>
@@ -6,13 +5,7 @@
 #include "image_rotation.hpp"
 #include "image_scaling.hpp"
 #include "distortion_correction.hpp"
-
-
-sf::Image loadImage(const std::string & filename) {
-    sf::Image img;
-    img.loadFromFile(filename);
-    return img;
-}
+#include "util.hpp"
 
 
 int main(int, const char **) {
